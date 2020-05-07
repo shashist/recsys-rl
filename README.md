@@ -6,7 +6,7 @@ TODO:
 
 - [ ] Implement validation 
 
-- [ ] Change training process (switch to sessions)
+- [x] Change training process (switch to sessions)
 - [ ] Add Prioritized Experience Replay
 
 Special TODO:

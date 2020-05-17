@@ -4,10 +4,9 @@ Implementation of [Deep Reinforcement Learning based Recommendation with Explici
 
 TODO:
 
-- [ ] Implement validation 
-
+- [x] Implement validation 
 - [x] Change training process (switch to sessions)
-- [ ] Add Prioritized Experience Replay
+- [x] Add Prioritized Experience Replay
 
 Special TODO:
 

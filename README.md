@@ -1,4 +1,4 @@
-# [Advanced Topics in Deep Reinforcement learning](https://deeppavlov.ai/rl_course_2020) course project [WIP]
+# Reinforcement learning for Recommendation Systems [WIP]
 
 Implementation of [Deep Reinforcement Learning based Recommendation with Explicit User-Item Interactions Modeling](https://arxiv.org/pdf/1810.12027.pdf) is currently in progress
 

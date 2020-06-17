@@ -56,7 +56,34 @@ class EvalDataset(td.Dataset):
         return output
 
 
-class PrioritizedBuffer(object):
+#https://github.com/vitchyr/rlkit/blob/master/rlkit/exploration_strategies/ou_strategy.py
+class OUNoise(object):
+    def __init__(self, action_dim, mu=0.0, theta=0.15, max_sigma=0.2, min_sigma=0.2, decay_period=10):
+        self.mu           = mu
+        self.theta        = theta
+        self.sigma        = max_sigma
+        self.max_sigma    = max_sigma
+        self.min_sigma    = min_sigma
+        self.decay_period = decay_period
+        self.action_dim   = action_dim
+        self.reset()
+
+    def reset(self):
+        self.state = np.ones(self.action_dim) * self.mu
+
+    def evolve_state(self):
+        x  = self.state
+        dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(self.action_dim)
+        self.state = x + dx
+        return self.state
+
+    def get_action(self, action, t=0):
+        ou_state = self.evolve_state()
+        self.sigma = self.max_sigma - (self.max_sigma - self.min_sigma) * min(1.0, t / self.decay_period)
+        return torch.tensor([action + ou_state]).float()
+
+
+class Prioritized_Buffer(object):
     def __init__(self, capacity, prob_alpha=0.6):
         self.prob_alpha = prob_alpha
         self.capacity   = capacity
@@ -64,13 +91,13 @@ class PrioritizedBuffer(object):
         self.pos        = 0
         self.priorities = np.zeros((capacity,), dtype=np.float32)
     
-    def push(self, user, memory, action, reward, next_user, next_memory):
+    def push(self, user, memory, action, reward, next_user, next_memory, done):
         max_prio = self.priorities.max() if self.buffer else 1.0
         
         if len(self.buffer) < self.capacity:
-            self.buffer.append((user, memory, action, reward, next_user, next_memory))
+            self.buffer.append((user, memory, action, reward, next_user, next_memory, done))
         else:
-            self.buffer[self.pos] = (user, memory, action, reward, next_user, next_memory)
+            self.buffer[self.pos] = (user, memory, action, reward, next_user, next_memory, done)
         
         self.priorities[self.pos] = max_prio
         self.pos = (self.pos + 1) % self.capacity
@@ -99,8 +126,9 @@ class PrioritizedBuffer(object):
         reward      = batch[3]
         next_user   = np.concatenate(batch[4])
         next_memory = np.concatenate(batch[5])
+        done        = batch[6]
 
-        return user, memory, action, reward, next_user, next_memory
+        return user, memory, action, reward, next_user, next_memory, done
 
     def update_priorities(self, batch_indices, batch_priorities):
         for idx, prio in zip(batch_indices, batch_priorities):
@@ -110,7 +138,7 @@ class PrioritizedBuffer(object):
         return len(self.buffer)
 
 
-def get_beta(idx, beta_start = 0.4, beta_steps = 100000):
+def get_beta(idx, beta_start=0.4, beta_steps=100000):
     return min(1.0, beta_start + idx * (1.0 - beta_start) / beta_steps)
 
 def preprocess_data(data_dir, train_rating):

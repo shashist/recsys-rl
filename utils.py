@@ -58,7 +58,7 @@ class EvalDataset(td.Dataset):
 
 #https://github.com/vitchyr/rlkit/blob/master/rlkit/exploration_strategies/ou_strategy.py
 class OUNoise(object):
-    def __init__(self, action_dim, mu=0.0, theta=0.15, max_sigma=0.2, min_sigma=0.2, decay_period=10):
+    def __init__(self, action_dim, mu=0.0, theta=0.15, max_sigma=0.4, min_sigma=0.4, decay_period=100000):
         self.mu           = mu
         self.theta        = theta
         self.sigma        = max_sigma
